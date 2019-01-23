@@ -49,6 +49,9 @@ public class GuiController implements Initializable {
 	private Rectangle tilesetHover;
 	
 	private int selectedSprite = -1;
+	
+	private int scaleIndex = 12;
+	private final double[] scales = new double[]{0.05, 0.06, 0.07, 0.08, 0.1, 0.13, 0.17, 0.2, 0.25, 0.33, 0.5, 0.67, 1.0, 1.5, 2.0};
 		
 	@FXML
 	private Button buttonNew;
@@ -58,6 +61,15 @@ public class GuiController implements Initializable {
 	
 	@FXML
 	private Button buttonSave;
+	
+	@FXML
+	private Label zoomLabel;
+	
+	@FXML
+	private Button zoomIn;
+	
+	@FXML
+	private Button zoomOut;
 	
 	@FXML
 	private ScrollPane mapPane;
@@ -76,12 +88,17 @@ public class GuiController implements Initializable {
 		buttonNew.setGraphic(new ImageView(new Image("/style/icons/pencil.png")));
 		buttonOpen.setGraphic(new ImageView(new Image("/style/icons/sign-out.png")));
 		buttonSave.setGraphic(new ImageView(new Image("/style/icons/sign-in.png")));
+		zoomOut.setGraphic(new ImageView(new Image("/style/icons/zoom-out.png")));
+		zoomIn.setGraphic(new ImageView(new Image("/style/icons/zoom-in.png")));
 		
 		mapPane.setHbarPolicy(ScrollBarPolicy.ALWAYS);
 		mapPane.setVbarPolicy(ScrollBarPolicy.ALWAYS);
 		
 		openedFile.set(false);
 		buttonSave.disableProperty().bind(openedFile.not());
+		
+		zoomIn.setDisable(true);
+		zoomOut.setDisable(true);
 		
 		buttonNew.setOnAction(e -> {
 			newMap();
@@ -134,8 +151,44 @@ public class GuiController implements Initializable {
 			
 		});
 		
+		zoomOut.setOnAction(e -> {
+			scaleIndex--;
+			if(scaleIndex <= 0) {
+				zoomOut.setDisable(true);
+			} else {
+				zoomOut.setDisable(false);
+				zoomIn.setDisable(false);
+			}
+			applyZoom();
+		});
+		
+		zoomIn.setOnAction(e -> {
+			scaleIndex++;
+			if(scaleIndex >= scales.length - 1) {
+				zoomIn.setDisable(true);
+			} else {
+				zoomIn.setDisable(false);
+				zoomOut.setDisable(false);
+			}
+			applyZoom();
+		});
+		
 	}
 		
+	private void applyZoom() {
+		mapCanvas.setScaleX(scales[scaleIndex]);
+		mapCanvas.setScaleY(scales[scaleIndex]);
+		mapCanvas.setTranslateX(- ((52 * currentMap.getWidth()) - (52 * currentMap.getWidth() * scales[scaleIndex])) / 2);
+		mapCanvas.setTranslateY(-((52 * currentMap.getHeight()) - (52 * currentMap.getHeight() * scales[scaleIndex])) / 2);
+		tiles.setPrefSize(52 * currentMap.getWidth() * scales[scaleIndex], 52 * currentMap.getHeight() * scales[scaleIndex]);
+		
+		mapHover.setWidth(50 * (scales[scaleIndex]));
+		mapHover.setHeight(50 * (scales[scaleIndex]));
+		mapHover.setLayoutX(-100);
+		
+		zoomLabel.setText("Zoom: " + (int) (100 * scales[scaleIndex]) + "%");
+	}
+	
 	// TODO: Convert popup window to FXML
 	private void newMap() {
 		
@@ -217,6 +270,8 @@ public class GuiController implements Initializable {
 			currentMap = new Map(f);
 			setupTiles();
 			openedFile.set(true);
+			zoomIn.setDisable(false);
+			zoomOut.setDisable(false);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -228,8 +283,9 @@ public class GuiController implements Initializable {
 			ObjectInputStream in = new ObjectInputStream(fileIn);
 			currentMap = (Map) in.readObject();
 			setupTiles();
-			System.out.println("Opened serialized map");
 			openedFile.set(true);
+			zoomIn.setDisable(false);
+			zoomOut.setDisable(false);
 			in.close();
 			fileIn.close();
 		} catch (Exception e) {
@@ -241,6 +297,8 @@ public class GuiController implements Initializable {
 		currentMap = new Map(width, height);
 		setupTiles();
 		openedFile.set(true);
+		zoomIn.setDisable(false);
+		zoomOut.setDisable(false);
 	}
 	
 	private void setupTiles() {
@@ -266,6 +324,7 @@ public class GuiController implements Initializable {
 				ctxMap.drawImage(tileSheet, si.x, si.y, 50, 50, x * 50, y * 50, 50, 50);
 			}
 		}
+		applyZoom();
 		
 		// Mouse events to draw tiles (On click or drag)
 		mapCanvas.setOnMouseClicked(m -> { drawTile(m, ctxMap);	});
@@ -278,8 +337,8 @@ public class GuiController implements Initializable {
 			if(x < 50 * currentMap.getWidth() && y < 50 * currentMap.getHeight()) {
 				int posX = (int) (x / 50) * 50;
 				int posY = (int) (y / 50) * 50;
-				mapHover.setLayoutX(posX + 5);
-				mapHover.setLayoutY(posY + 5);
+				mapHover.setLayoutX(posX * scales[scaleIndex] + 5);
+				mapHover.setLayoutY(posY * scales[scaleIndex] + 5);
 			} else {
 				mapHover.setLayoutX(-100);
 			}
@@ -346,8 +405,8 @@ public class GuiController implements Initializable {
 			SubImage si = SubImage.getSprite(selectedSprite);
 			ctx.drawImage(new Image("/tiles/tileset_01.png"), si.x, si.y, 50, 50, posX * 50, posY * 50, 50, 50);
 			
-			mapHover.setLayoutX(posX * 50 + 5);
-			mapHover.setLayoutY(posY * 50 + 5);
+			mapHover.setLayoutX(posX * 50 * scales[scaleIndex] + 5);
+			mapHover.setLayoutY(posY * 50 * scales[scaleIndex] + 5);
 			
 		}
 	}

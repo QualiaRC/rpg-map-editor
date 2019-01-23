@@ -29,7 +29,15 @@
     		
     		<Pane fx:id="mapControls" layoutX="${4 * PADDING + fileControls.width}" layoutY="$PADDING">
     			<children>
-    				<Label styleClass="controlLabel" prefHeight="$CONTROLS_HEIGHT" text="Map : "/>
+    				<Label styleClass="controlLabel" prefHeight="$CONTROLS_HEIGHT" text="Map: "/>
+    			</children>
+    		</Pane>
+    		
+    		<Pane fx:id="zoomControls" layoutX="${PADDING + mapControls.layoutX + mapControls.width}" layoutY="$PADDING">
+    			<children>
+    				<Label fx:id="zoomLabel" styleClass="controlLabel" prefWidth="100" prefHeight="$CONTROLS_HEIGHT" text="Zoom: 100%" />
+    				<Button fx:id="zoomOut" styleClass="controlButton" layoutX="${zoomLabel.prefWidth}" prefWidth="$CONTROLS_HEIGHT" prefHeight="$CONTROLS_HEIGHT" />
+    				<Button fx:id="zoomIn" styleClass="controlButton" layoutX="${zoomOut.layoutX + zoomOut.width}" prefWidth="$CONTROLS_HEIGHT" prefHeight="$CONTROLS_HEIGHT" />
     			</children>
     		</Pane>
     	</children>
