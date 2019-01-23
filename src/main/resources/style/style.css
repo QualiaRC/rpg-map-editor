@@ -1,0 +1,28 @@
+.controls {
+	-fx-background-color: #c0c0c0;
+}
+
+.controlLabel {
+	-fx-font-size: 16;
+	-fx-font-weight: bold;
+}
+
+.controlButton {
+	-fx-background-color: transparent;
+}
+
+.controlButton:hover {
+	-fx-background-color: lightblue;
+}
+
+.sheetBg > .viewport {
+	-fx-background-color: transparent;
+}
+.sheetBg {
+	-fx-background-color: gray;
+}
+
+.scroll-pane:focused {
+    -fx-background-insets: 0, 1;
+    -fx-padding: 1;
+}

@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+<?import java.net.URL?>
+<?import java.lang.Double?>
+
+<Pane fx:controller="me.ryan_clark.rpg_map_editor.gui.GuiController"
+    xmlns:fx="http://javafx.com/fxml">
+    
+    <!-- CONSTANTS  -->
+    <fx:define>
+    	<Double fx:id="CONTROLS_HEIGHT" fx:value="25.0" />
+    	<Double fx:id="PADDING" fx:value="5.0" />
+    	
+    	<Double fx:id="SHEETPANE_WIDTH" fx:value="500.0" />
+    </fx:define>
+    
+    <!-- CONTROL BAR -->
+    <Pane fx:id="controls" styleClass="controls" prefWidth="${controls.parent.width}" prefHeight="${CONTROLS_HEIGHT + 2 * PADDING}">
+    	<children>
+    		<Pane fx:id="fileControls" layoutX="$PADDING" layoutY="$PADDING" prefHeight="$CONTROLS_HEIGHT">
+    			<children>
+    				<Button fx:id="buttonNew" styleClass="controlButton" prefWidth="$CONTROLS_HEIGHT" prefHeight="$CONTROLS_HEIGHT" />
+    				<Button fx:id="buttonOpen" styleClass="controlButton" layoutX="${buttonNew.layoutX + buttonNew.width}" prefWidth="$CONTROLS_HEIGHT" prefHeight="$CONTROLS_HEIGHT" />
+    				<Button fx:id="buttonSave" styleClass="controlButton" layoutX="${buttonOpen.layoutX + buttonOpen.width}" prefWidth="$CONTROLS_HEIGHT" prefHeight="$CONTROLS_HEIGHT" />
+    			</children>
+    		</Pane>
+    		
+    		<Pane fx:id="mapControls" layoutX="${4 * PADDING + fileControls.width}" layoutY="$PADDING">
+    			<children>
+    				<Label styleClass="controlLabel" prefHeight="$CONTROLS_HEIGHT" text="Map : "/>
+    			</children>
+    		</Pane>
+    	</children>
+    </Pane>
+    
+    <!-- MAIN WINDOW -->
+    <Pane fx:id="content" layoutY="${controls.height}" prefWidth="${content.parent.width}" prefHeight="${content.parent.height}">
+    	<children>
+    	
+    		<!-- GRID SHOWING THE MAP -->
+    		<ScrollPane fx:id="mapPane" styleClass="sheetBg" prefWidth="${content.width - SHEETPANE_WIDTH}" prefHeight="${content.height - controls.height}">
+    			<content>
+    				<Pane fx:id="tiles" >
+    					<children>
+    						<Label prefWidth="10" prefHeight="10"/>
+    					</children>
+    				</Pane>
+    			</content>
+    		</ScrollPane>
+    		
+    		<!-- SIDE BAR SHOWING THE TILE SET -->
+    		<ScrollPane fx:id="sheetPane" layoutX="${content.width - SHEETPANE_WIDTH}" prefWidth="$SHEETPANE_WIDTH" prefHeight="${content.height - controls.height}">
+    			<content>
+    				<Pane fx:id="sheet">
+    				</Pane>
+    			</content>
+    		</ScrollPane>
+    	</children>
+    </Pane>
+    
+    <stylesheets>
+		<URL value="@style.css" />
+	</stylesheets>
+    
+</Pane>
