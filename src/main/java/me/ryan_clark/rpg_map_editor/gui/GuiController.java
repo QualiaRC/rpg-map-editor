@@ -23,6 +23,7 @@ import javafx.scene.control.TextFormatter;
 import javafx.scene.control.TextFormatter.Change;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
@@ -327,8 +328,8 @@ public class GuiController implements Initializable {
 		applyZoom();
 		
 		// Mouse events to draw tiles (On click or drag)
-		mapCanvas.setOnMouseClicked(m -> { drawTile(m, ctxMap);	});
-		mapCanvas.setOnMouseDragged(m -> { drawTile(m, ctxMap);	});
+		mapCanvas.setOnMouseClicked(m -> { drawTile(m, ctxMap); });
+		mapCanvas.setOnMouseDragged(m -> { drawTile(m, ctxMap); });
 		
 		// Hovering over a square moves the mapHover rectangle to that location
 		mapCanvas.setOnMouseMoved(m -> {
@@ -395,19 +396,25 @@ public class GuiController implements Initializable {
 	
 	// TODO: Different drawing methods (eg fill, rectangle, line)
 	public void drawTile(MouseEvent m, GraphicsContext ctx) {
-		double x = m.getX();
-		double y = m.getY();
-		int posX = (int) x/50;
-		int posY = (int) y/50;
-		if(selectedSprite != -1) {
-			currentMap.setTile(posX, posY, new Tile(selectedSprite, currentMap.getTile(posX, posY).collisionId));
-			
-			SubImage si = SubImage.getSprite(selectedSprite);
-			ctx.drawImage(new Image("/tiles/tileset_01.png"), si.x, si.y, 50, 50, posX * 50, posY * 50, 50, 50);
-			
-			mapHover.setLayoutX(posX * 50 * scales[scaleIndex] + 5);
-			mapHover.setLayoutY(posY * 50 * scales[scaleIndex] + 5);
-			
+		mapPane.setPannable(true);
+		if(m.getButton() == MouseButton.PRIMARY) {
+			mapPane.setPannable(false);
+			double x = m.getX();
+			double y = m.getY();
+			int posX = (int) x/50;
+			int posY = (int) y/50;
+			if(selectedSprite != -1) {
+				currentMap.setTile(posX, posY, new Tile(selectedSprite, currentMap.getTile(posX, posY).collisionId));
+				
+				SubImage si = SubImage.getSprite(selectedSprite);
+				
+				// TODO: use the current map's tile sheet
+				ctx.drawImage(new Image("/tiles/tileset_01.png"), si.x, si.y, 50, 50, posX * 50, posY * 50, 50, 50);
+				
+				mapHover.setLayoutX(posX * 50 * scales[scaleIndex] + 5);
+				mapHover.setLayoutY(posY * 50 * scales[scaleIndex] + 5);
+				
+			}
 		}
 	}
 }

@@ -48,7 +48,7 @@
     	<children>
     	
     		<!-- GRID SHOWING THE MAP -->
-    		<ScrollPane fx:id="mapPane" styleClass="sheetBg" prefWidth="${content.width - SHEETPANE_WIDTH}" prefHeight="${content.height - controls.height}">
+    		<ScrollPane fx:id="mapPane" pannable="true" styleClass="sheetBg" prefWidth="${content.width - SHEETPANE_WIDTH}" prefHeight="${content.height - controls.height}">
     			<content>
     				<Pane fx:id="tiles" >
     					<children>
