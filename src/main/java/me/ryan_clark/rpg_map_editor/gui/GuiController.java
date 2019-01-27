@@ -4,7 +4,9 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.ObjectInputStream;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.ResourceBundle;
+import java.util.Stack;
 import java.util.function.UnaryOperator;
 
 import javafx.beans.property.BooleanProperty;
@@ -33,6 +35,7 @@ import javafx.stage.FileChooser;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.util.converter.IntegerStringConverter;
+import me.ryan_clark.rpg_map_editor.Action;
 import me.ryan_clark.rpg_map_editor.Map;
 import me.ryan_clark.rpg_map_editor.SubImage;
 import me.ryan_clark.rpg_map_editor.Tile;
@@ -53,6 +56,12 @@ public class GuiController implements Initializable {
 	
 	private int scaleIndex = 12;
 	private final double[] scales = new double[]{0.05, 0.06, 0.07, 0.08, 0.1, 0.13, 0.17, 0.2, 0.25, 0.33, 0.5, 0.67, 1.0, 1.5, 2.0};
+	
+	private Stack<ArrayList<Action>> undoStack = new Stack<ArrayList<Action>>();
+	private Stack<ArrayList<Action>> redoStack = new Stack<ArrayList<Action>>();
+	
+	private ArrayList<Action> currentAction = new ArrayList<Action>();
+	private boolean performingAction = false;
 		
 	@FXML
 	private Button buttonNew;
@@ -81,7 +90,11 @@ public class GuiController implements Initializable {
 	@FXML
 	private Pane sheet;
 	
-
+	@FXML
+	private Button undoButton;
+	
+	@FXML
+	private Button redoButton;
 
 	@Override
 	public void initialize(URL location, ResourceBundle resources) {
@@ -153,30 +166,54 @@ public class GuiController implements Initializable {
 		});
 		
 		zoomOut.setOnAction(e -> {
-			scaleIndex--;
-			if(scaleIndex <= 0) {
-				zoomOut.setDisable(true);
-			} else {
-				zoomOut.setDisable(false);
-				zoomIn.setDisable(false);
-			}
-			applyZoom();
+			applyZoom(false);
 		});
 		
 		zoomIn.setOnAction(e -> {
-			scaleIndex++;
-			if(scaleIndex >= scales.length - 1) {
-				zoomIn.setDisable(true);
-			} else {
-				zoomIn.setDisable(false);
-				zoomOut.setDisable(false);
-			}
-			applyZoom();
+			applyZoom(true);
 		});
 		
+		undoButton.setOnAction(e -> {
+			undo();
+		});
+		
+		redoButton.setOnAction(e -> {
+			redo();
+		});
+		
+		updateUndoRedo();
+	}
+	
+	// Sets zoom level back to 100%
+	private void resetZoom() {
+		scaleIndex = 11;
+		applyZoom(true);
 	}
 		
-	private void applyZoom() {
+	// Zooms map canvas in or out
+	//  True represents zoom in, false represents zoom out
+	private void applyZoom(boolean in) {
+		
+		// Shift scale index right if zooming in or left if zooming out
+		if(in) {
+			scaleIndex++;
+		} else {
+			scaleIndex--;
+		}
+		
+		// If all the way left, disable zoom out
+		// Else if all the way right, disable zoom in
+		// Else enable both
+		if(scaleIndex <= 0) {
+			zoomOut.setDisable(true);
+		} else if(scaleIndex >= scales.length - 1) {
+			zoomIn.setDisable(true);
+		} else {
+			zoomIn.setDisable(false);
+			zoomOut.setDisable(false);
+		}
+		
+		// Scaling calculations on both the canvas and the hover indicator
 		mapCanvas.setScaleX(scales[scaleIndex]);
 		mapCanvas.setScaleY(scales[scaleIndex]);
 		mapCanvas.setTranslateX(- ((52 * currentMap.getWidth()) - (52 * currentMap.getWidth() * scales[scaleIndex])) / 2);
@@ -187,10 +224,11 @@ public class GuiController implements Initializable {
 		mapHover.setHeight(50 * (scales[scaleIndex]));
 		mapHover.setLayoutX(-100);
 		
+		// Finally, update the zoom label to represent updated zoom level
 		zoomLabel.setText("Zoom: " + (int) (100 * scales[scaleIndex]) + "%");
 	}
 	
-	// TODO: Convert popup window to FXML
+	// TODO: Convert pop-up window to FXML
 	private void newMap() {
 		
 		UnaryOperator<Change> integerFilter = change -> {
@@ -304,6 +342,10 @@ public class GuiController implements Initializable {
 	
 	private void setupTiles() {
 		
+		undoStack.removeAllElements();
+		redoStack.removeAllElements();
+		updateUndoRedo();
+		
 		Image tileSheet = currentMap.getSheet();
 		
 		// FIRST, work on the map canvas
@@ -325,11 +367,27 @@ public class GuiController implements Initializable {
 				ctxMap.drawImage(tileSheet, si.x, si.y, 50, 50, x * 50, y * 50, 50, 50);
 			}
 		}
-		applyZoom();
+		resetZoom();
+		
 		
 		// Mouse events to draw tiles (On click or drag)
-		mapCanvas.setOnMouseClicked(m -> { drawTile(m, ctxMap); });
-		mapCanvas.setOnMouseDragged(m -> { drawTile(m, ctxMap); });
+		mapCanvas.setOnMouseClicked(m -> { 
+			redoStack.removeAllElements();
+			drawTile(m, ctxMap); });
+		mapCanvas.setOnMouseDragged(m -> {
+			redoStack.removeAllElements();
+			drawTile(m, ctxMap); });
+		
+		mapCanvas.setOnMouseDragReleased(m -> {
+			undoStack.push(currentAction);
+			currentAction = new ArrayList<Action>();
+			updateUndoRedo();
+		});
+		mapCanvas.setOnMouseReleased(m -> {
+			undoStack.push(currentAction);
+			currentAction = new ArrayList<Action>();
+			updateUndoRedo();
+		});
 		
 		// Hovering over a square moves the mapHover rectangle to that location
 		mapCanvas.setOnMouseMoved(m -> {
@@ -390,12 +448,11 @@ public class GuiController implements Initializable {
 		sheet.getChildren().removeAll(sheet.getChildren());
 		sheet.getChildren().addAll(tilesetCanvas, tilesetHover);
 		
-
 	}
 	
 	
 	// TODO: Different drawing methods (eg fill, rectangle, line)
-	public void drawTile(MouseEvent m, GraphicsContext ctx) {
+	public void drawTile(MouseEvent m, GraphicsContext ctx) {		
 		mapPane.setPannable(true);
 		if(m.getButton() == MouseButton.PRIMARY) {
 			mapPane.setPannable(false);
@@ -403,18 +460,71 @@ public class GuiController implements Initializable {
 			double y = m.getY();
 			int posX = (int) x/50;
 			int posY = (int) y/50;
-			if(selectedSprite != -1) {
-				currentMap.setTile(posX, posY, new Tile(selectedSprite, currentMap.getTile(posX, posY).collisionId));
+			if(selectedSprite != -1 && 
+					posX < currentMap.getWidth() && posX >= 0 &&
+					posY < currentMap.getHeight() && posY >= 0 &&
+					currentMap.getTile(posX, posY).spriteId != selectedSprite) {
+				Tile newTile = new Tile(selectedSprite, currentMap.getTile(posX, posY).collisionId);
+				Action newAction = new Action(new Tile(currentMap.getTile(posX, posY)), newTile, posX, posY); 
+				currentAction.add(newAction);
+				currentMap.setTile(posX, posY, newTile);
 				
 				SubImage si = SubImage.getSprite(selectedSprite);
 				
 				// TODO: use the current map's tile sheet
 				ctx.drawImage(new Image("/tiles/tileset_01.png"), si.x, si.y, 50, 50, posX * 50, posY * 50, 50, 50);
 				
-				mapHover.setLayoutX(posX * 50 * scales[scaleIndex] + 5);
-				mapHover.setLayoutY(posY * 50 * scales[scaleIndex] + 5);
 				
+				System.out.println("Added new action: Tile " + newAction.oldTile.spriteId + " -> " + newAction.newTile.spriteId);
 			}
+			
+			mapHover.setLayoutX(posX * 50 * scales[scaleIndex] + 5);
+			mapHover.setLayoutY(posY * 50 * scales[scaleIndex] + 5);
+			
+		}
+	}
+	
+	private void undo() {
+		ArrayList<Action> actions = undoStack.pop();
+		
+		for(Action action : actions) {
+			Tile t = action.oldTile;
+			currentMap.setTile(action.posX, action.posY, t);	
+			SubImage si = SubImage.getSprite(t.spriteId);
+			mapCanvas.getGraphicsContext2D().drawImage(new Image("/tiles/tileset_01.png"), si.x, si.y, 50, 50, action.posX * 50, action.posY * 50, 50, 50);
+		}
+		
+		redoStack.push(actions);
+
+		updateUndoRedo();
+	}
+	
+	private void redo() {
+		ArrayList<Action> actions = redoStack.pop();
+		
+		for(Action action : actions) {
+			Tile t = action.newTile;
+			currentMap.setTile(action.posX, action.posY, t);	
+			SubImage si = SubImage.getSprite(t.spriteId);
+			mapCanvas.getGraphicsContext2D().drawImage(new Image("/tiles/tileset_01.png"), si.x, si.y, 50, 50, action.posX * 50, action.posY * 50, 50, 50);			
+		}
+		
+		undoStack.push(actions);
+		
+		updateUndoRedo();
+	}
+	
+	private void updateUndoRedo() {
+		if(undoStack.isEmpty()) {
+			undoButton.setDisable(true);
+		} else {
+			undoButton.setDisable(false);
+		}
+		
+		if(redoStack.isEmpty()) {
+			redoButton.setDisable(true);
+		} else {
+			redoButton.setDisable(false);
 		}
 	}
 }

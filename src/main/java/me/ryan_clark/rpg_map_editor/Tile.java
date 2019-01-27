@@ -18,6 +18,11 @@ public class Tile implements Serializable {
 		this.collisionId = collisionId;
 	}
 	
+	public Tile(Tile t) {
+		this.spriteId = t.spriteId;
+		this.collisionId = t.collisionId;
+	}
+	
 	public static CollisionType collisionTypeFromId(int id) {
 		switch(id) {
 			case 0:

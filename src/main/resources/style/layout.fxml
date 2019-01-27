@@ -40,6 +40,14 @@
     				<Button fx:id="zoomIn" styleClass="controlButton" layoutX="${zoomOut.layoutX + zoomOut.width}" prefWidth="$CONTROLS_HEIGHT" prefHeight="$CONTROLS_HEIGHT" />
     			</children>
     		</Pane>
+    		
+    		<Pane fx:id="undoControls" layoutX="${PADDING + zoomControls.layoutX + zoomControls.width}" layoutY="$PADDING">
+    			<children>
+    				<Button fx:id="undoButton" styleClass="controlButton" prefWidth="100" prefHeight="$CONTROLS_HEIGHT" text="UNDO" />
+    				<Button fx:id="redoButton" styleClass="controlButton" layoutX="${undoButton.prefWidth}" prefHeight="$CONTROLS_HEIGHT" text="REDO" />
+    				
+    			</children>
+    		</Pane>
     	</children>
     </Pane>
     
