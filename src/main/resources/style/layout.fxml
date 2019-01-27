@@ -2,6 +2,7 @@
 
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.control.*?>
+<?import javafx.scene.image.*?>
 <?import java.net.URL?>
 <?import java.lang.Double?>
 
@@ -10,46 +11,64 @@
     
     <!-- CONSTANTS  -->
     <fx:define>
-    	<Double fx:id="CONTROLS_HEIGHT" fx:value="25.0" />
+    	<Double fx:id="CONTROLS_HEIGHT" fx:value="30.0" />
     	<Double fx:id="PADDING" fx:value="5.0" />
     	
     	<Double fx:id="SHEETPANE_WIDTH" fx:value="500.0" />
     </fx:define>
     
     <!-- CONTROL BAR -->
-    <Pane fx:id="controls" styleClass="controls" prefWidth="${controls.parent.width}" prefHeight="${CONTROLS_HEIGHT + 2 * PADDING}">
-    	<children>
-    		<Pane fx:id="fileControls" layoutX="$PADDING" layoutY="$PADDING" prefHeight="$CONTROLS_HEIGHT">
-    			<children>
-    				<Button fx:id="buttonNew" styleClass="controlButton" prefWidth="$CONTROLS_HEIGHT" prefHeight="$CONTROLS_HEIGHT" />
-    				<Button fx:id="buttonOpen" styleClass="controlButton" layoutX="${buttonNew.layoutX + buttonNew.width}" prefWidth="$CONTROLS_HEIGHT" prefHeight="$CONTROLS_HEIGHT" />
-    				<Button fx:id="buttonSave" styleClass="controlButton" layoutX="${buttonOpen.layoutX + buttonOpen.width}" prefWidth="$CONTROLS_HEIGHT" prefHeight="$CONTROLS_HEIGHT" />
-    			</children>
-    		</Pane>
+    <HBox fx:id="controls" styleClass="controls" spacing="$PADDING" prefWidth="${controls.parent.width}" prefHeight="${CONTROLS_HEIGHT + 2 * PADDING}">
+    	
+    	<HBox fx:id="fileControls" alignment="CENTER_LEFT" >
+    		<Label prefWidth="$PADDING"/>
     		
-    		<Pane fx:id="mapControls" layoutX="${4 * PADDING + fileControls.width}" layoutY="$PADDING">
-    			<children>
-    				<Label styleClass="controlLabel" prefHeight="$CONTROLS_HEIGHT" text="Map: "/>
-    			</children>
-    		</Pane>
+    		<Button fx:id="buttonNew" styleClass="controlButton" prefHeight="$CONTROLS_HEIGHT"> 
+    			<tooltip><Tooltip text="New file" /></tooltip>
+    			<graphic><ImageView><image><Image url="/style/icons/new.png" /></image></ImageView></graphic>
+    		</Button>
     		
-    		<Pane fx:id="zoomControls" layoutX="${PADDING + mapControls.layoutX + mapControls.width}" layoutY="$PADDING">
-    			<children>
-    				<Label fx:id="zoomLabel" styleClass="controlLabel" prefWidth="100" prefHeight="$CONTROLS_HEIGHT" text="Zoom: 100%" />
-    				<Button fx:id="zoomOut" styleClass="controlButton" layoutX="${zoomLabel.prefWidth}" prefWidth="$CONTROLS_HEIGHT" prefHeight="$CONTROLS_HEIGHT" />
-    				<Button fx:id="zoomIn" styleClass="controlButton" layoutX="${zoomOut.layoutX + zoomOut.width}" prefWidth="$CONTROLS_HEIGHT" prefHeight="$CONTROLS_HEIGHT" />
-    			</children>
-    		</Pane>
+    		<Button fx:id="buttonOpen" styleClass="controlButton">
+    			<tooltip><Tooltip text="Open file" /></tooltip>
+    			<graphic><ImageView><image><Image url="/style/icons/sign-out.png" /></image></ImageView></graphic>
+    		</Button>
     		
-    		<Pane fx:id="undoControls" layoutX="${PADDING + zoomControls.layoutX + zoomControls.width}" layoutY="$PADDING">
-    			<children>
-    				<Button fx:id="undoButton" styleClass="controlButton" prefWidth="100" prefHeight="$CONTROLS_HEIGHT" text="UNDO" />
-    				<Button fx:id="redoButton" styleClass="controlButton" layoutX="${undoButton.prefWidth}" prefHeight="$CONTROLS_HEIGHT" text="REDO" />
-    				
-    			</children>
-    		</Pane>
-    	</children>
-    </Pane>
+    		<Button fx:id="buttonSave" styleClass="controlButton">
+    			<tooltip><Tooltip text="Save file" /></tooltip>
+    			<graphic><ImageView><image><Image url="/style/icons/save.png" /></image></ImageView></graphic>
+    		</Button>
+    	</HBox>
+    	
+    	<Label styleClass="controlLabel" text=" | " prefHeight="${controls.height - PADDING / 2}"/>
+    	
+    	<HBox fx:id="zoomControls" alignment="CENTER_LEFT" >
+    		<Label fx:id="zoomLabel" styleClass="controlLabel" prefWidth="100" prefHeight="$CONTROLS_HEIGHT" text="Zoom: 100%" />
+    		
+    		<Button fx:id="zoomOut" styleClass="controlButton">
+    			<tooltip><Tooltip text="Zoom out" /></tooltip>
+    			<graphic><ImageView><image><Image url="/style/icons/zoom-out.png" /></image></ImageView></graphic>
+    		</Button>
+    		
+    		<Button fx:id="zoomIn" styleClass="controlButton">
+    			<tooltip><Tooltip text="Zoom in" /></tooltip>
+    			<graphic><ImageView><image><Image url="/style/icons/zoom-in.png" /></image></ImageView></graphic>
+    		</Button>
+    	</HBox>
+    	
+    	<Label styleClass="controlLabel" text=" | " prefHeight="${controls.height - PADDING / 2}"/>
+   
+    	<HBox fx:id="undoControls" alignment="CENTER_LEFT" >
+    		<Button fx:id="undoButton" styleClass="controlButton" prefHeight="$CONTROLS_HEIGHT">
+    			<tooltip><Tooltip text="Undo" /></tooltip>
+    			<graphic><ImageView><image><Image url="/style/icons/undo.png" /></image></ImageView></graphic>
+    		</Button>
+    
+    		<Button fx:id="redoButton" styleClass="controlButton">
+    			<tooltip><Tooltip text="Redo" /></tooltip>
+    			<graphic><ImageView><image><Image url="/style/icons/redo.png" /></image></ImageView></graphic>
+    		</Button>
+    	</HBox>	
+    </HBox>
     
     <!-- MAIN WINDOW -->
     <Pane fx:id="content" layoutY="${controls.height}" prefWidth="${content.parent.width}" prefHeight="${content.parent.height}">

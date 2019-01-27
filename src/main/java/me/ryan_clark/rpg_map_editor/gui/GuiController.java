@@ -98,12 +98,6 @@ public class GuiController implements Initializable {
 
 	@Override
 	public void initialize(URL location, ResourceBundle resources) {
-				
-		buttonNew.setGraphic(new ImageView(new Image("/style/icons/pencil.png")));
-		buttonOpen.setGraphic(new ImageView(new Image("/style/icons/sign-out.png")));
-		buttonSave.setGraphic(new ImageView(new Image("/style/icons/sign-in.png")));
-		zoomOut.setGraphic(new ImageView(new Image("/style/icons/zoom-out.png")));
-		zoomIn.setGraphic(new ImageView(new Image("/style/icons/zoom-in.png")));
 		
 		mapPane.setHbarPolicy(ScrollBarPolicy.ALWAYS);
 		mapPane.setVbarPolicy(ScrollBarPolicy.ALWAYS);
