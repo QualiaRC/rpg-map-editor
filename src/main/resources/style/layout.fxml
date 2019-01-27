@@ -68,6 +68,26 @@
     			<graphic><ImageView><image><Image url="/style/icons/redo.png" /></image></ImageView></graphic>
     		</Button>
     	</HBox>	
+    	
+		<Label styleClass="controlLabel" text=" | " prefHeight="${controls.height - PADDING / 2}"/>
+   
+    	<HBox fx:id="layerControls" alignment="CENTER_LEFT" >
+    		<Button fx:id="layer1Button" styleClass="controlButton" prefHeight="$CONTROLS_HEIGHT">
+    			<tooltip><Tooltip text="Layer 1" /></tooltip>
+    			<graphic><ImageView><image><Image url="/style/icons/layer1.png" /></image></ImageView></graphic>
+    		</Button>
+    		
+    		<Button fx:id="layer2Button" styleClass="controlButton" >
+    			<tooltip><Tooltip text="Layer 2" /></tooltip>
+    			<graphic><ImageView><image><Image url="/style/icons/layer2.png" /></image></ImageView></graphic>
+    		</Button>
+    		
+    		<Button fx:id="collisionButton" styleClass="controlButton" >
+    			<tooltip><Tooltip text="Collision" /></tooltip>
+    			<graphic><ImageView><image><Image url="/style/icons/collision.png" /></image></ImageView></graphic>
+    		</Button>
+    		
+    	</HBox>
     </HBox>
     
     <!-- MAIN WINDOW -->
