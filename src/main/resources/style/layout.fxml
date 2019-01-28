@@ -86,8 +86,27 @@
     			<tooltip><Tooltip text="Collision" /></tooltip>
     			<graphic><ImageView><image><Image url="/style/icons/collision.png" /></image></ImageView></graphic>
     		</Button>
-    		
     	</HBox>
+    	
+    	<Label styleClass="controlLabel" text=" | " prefHeight="${controls.height - PADDING / 2}"/>
+    	
+    	<HBox fx:id="paintControls" alignment="CENTER_LEFT" >
+    		<Button fx:id="paintPencil" styleClass="controlButton" prefHeight="$CONTROLS_HEIGHT">
+    			<tooltip><Tooltip text="Pencil tool" /></tooltip>
+    			<graphic><ImageView><image><Image url="/style/icons/pencil.png" /></image></ImageView></graphic>
+    		</Button>
+
+    		<Button fx:id="paintFill" styleClass="controlButton" prefHeight="$CONTROLS_HEIGHT">
+    			<tooltip><Tooltip text="Fill tool" /></tooltip>
+    			<graphic><ImageView><image><Image url="/style/icons/fill.png" /></image></ImageView></graphic>
+    		</Button>
+    		
+    		<Button fx:id="paintRectangle" styleClass="controlButton" prefHeight="$CONTROLS_HEIGHT">
+    			<tooltip><Tooltip text="Rectangle tool" /></tooltip>
+    			<graphic><ImageView><image><Image url="/style/icons/rectangle.png" /></image></ImageView></graphic>
+    		</Button>
+    	</HBox>
+    	
     </HBox>
     
     <!-- MAIN WINDOW -->

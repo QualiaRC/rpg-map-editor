@@ -67,6 +67,9 @@ public class GuiController implements Initializable {
 	// layer 1, layer 2, collision
 	private int layerMode = 0;
 	
+	// pencil, fill, rectangle
+	private int drawMode = 0;
+	
 	private boolean ctrlPressed = false;
 		
 	@FXML
@@ -111,13 +114,30 @@ public class GuiController implements Initializable {
 	@FXML
 	private Button collisionButton;
 	
+	@FXML
+	private Button paintPencil;
+	
+	@FXML
+	private Button paintFill;
+	
+	@FXML
+	private Button paintRectangle;
+	
+	
+	
 	private Button[] layerButtons;
-
+	private Button[] drawButtons;
+	
 	@Override
 	public void initialize(URL location, ResourceBundle resources) {
 		
 		layerButtons = new Button[] {layer1Button, layer2Button, collisionButton};
 		for(Button b : layerButtons) {
+			b.setDisable(true);
+		}
+		
+		drawButtons = new Button[] {paintPencil, paintFill, paintRectangle};
+		for(Button b : drawButtons) {
 			b.setDisable(true);
 		}
 		
@@ -200,18 +220,27 @@ public class GuiController implements Initializable {
 		updateUndoRedo();
 		
 		layer1Button.setOnAction(e -> {
-			layerMode = 0;
-			changeLayer(layerMode);
+			changeLayer(0);
 		});
 		
 		layer2Button.setOnAction(e -> {
-			layerMode = 1;
-			changeLayer(layerMode);
+			changeLayer(1);
 		});
 
 		collisionButton.setOnAction(e -> {
-			layerMode = 2;
-			changeLayer(layerMode);
+			changeLayer(2);
+		});
+		
+		paintPencil.setOnAction(e -> {
+			changeDraw(0);
+		});
+		
+		paintFill.setOnAction(e -> {
+			changeDraw(1);
+		});
+		
+		paintRectangle.setOnAction(e -> {
+			changeDraw(2);
 		});
 	}
 	
@@ -432,12 +461,20 @@ public class GuiController implements Initializable {
 		resetZoom();
 		
 		// Mouse events to draw tiles (On click or drag)
-		mapCanvas.setOnMouseClicked(m -> { 
+		mapCanvas.setOnMousePressed(m -> { 
 			redoStack.removeAllElements();
-			drawTile(m, ctxMap); });
+			if(drawMode == 0) {
+				drawTile(m, ctxMap);
+			} else if(drawMode == 1) {
+				fillTile(m, ctxMap);
+			}
+		});
 		mapCanvas.setOnMouseDragged(m -> {
-			redoStack.removeAllElements();
-			drawTile(m, ctxMap); });
+			if(drawMode != 1) {
+				redoStack.removeAllElements();
+				drawTile(m, ctxMap); 
+			}
+		});
 		
 		mapCanvas.setOnMouseDragReleased(m -> {
 			if(currentAction.size() != 0) {
@@ -448,6 +485,7 @@ public class GuiController implements Initializable {
 		});
 		mapCanvas.setOnMouseReleased(m -> {
 			if(currentAction.size() != 0) {
+				System.out.println("Adding to undo stack");
 				undoStack.push(currentAction);
 				currentAction = new ArrayList<Action>();
 				updateUndoRedo();
@@ -511,8 +549,9 @@ public class GuiController implements Initializable {
 		sheet.getChildren().removeAll(sheet.getChildren());
 		sheet.getChildren().addAll(tilesetCanvas, tilesetHover);
 		
-		layerMode = 0;
-		changeLayer(layerMode);
+		changeLayer(0);
+		
+		changeDraw(0);
 		
 		buttonNew.getScene().setOnKeyPressed(e -> {
 			if(e.getCode().equals(KeyCode.CONTROL)) {
@@ -537,7 +576,7 @@ public class GuiController implements Initializable {
 	
 	
 	// TODO: Different drawing methods (eg fill, rectangle, line)
-	public void drawTile(MouseEvent m, GraphicsContext ctx) {		
+	private void drawTile(MouseEvent m, GraphicsContext ctx) {		
 		mapPane.setPannable(true);
 		if(m.getButton() == MouseButton.PRIMARY) {
 			mapPane.setPannable(false);
@@ -562,6 +601,50 @@ public class GuiController implements Initializable {
 			
 			mapHover.setLayoutX(posX * 50 * scales[scaleIndex] + 5);
 			mapHover.setLayoutY(posY * 50 * scales[scaleIndex] + 5);
+		}
+	}
+	
+	private void fillTile(MouseEvent m, GraphicsContext ctx) {
+		mapPane.setPannable(true);
+		if(m.getButton() == MouseButton.PRIMARY) {
+			mapPane.setPannable(false);
+			double x = m.getX();
+			double y = m.getY();
+			int posX = (int) x/50;
+			int posY = (int) y/50;
+			if(selectedSprite != -1 && 
+					posX < currentMap.getWidth() && posX >= 0 &&
+					posY < currentMap.getHeight() && posY >= 0 &&
+					currentMap.getTile(posX, posY).spriteId != selectedSprite) {
+				Tile newTile = new Tile(selectedSprite, currentMap.getTile(posX, posY).collisionId);
+				
+				Image tileImage = new Image("/tiles/tileset_01.png");
+								
+				fill(ctx, posX, posY, SubImage.getSprite(selectedSprite), currentMap.getTile(posX, posY), newTile, tileImage);
+				
+				currentMap.setTile(posX, posY, newTile);
+			}
+			
+		}
+	}
+	
+	private void fill(GraphicsContext ctx, int posX, int posY, SubImage si, Tile oldTile, Tile newTile, Image tileImage) {
+		Action newAction = new Action(new Tile(currentMap.getTile(posX, posY)), newTile, posX, posY); 
+		currentAction.add(newAction);
+		currentMap.setTile(posX, posY, newTile);
+		
+		ctx.drawImage(tileImage, si.x, si.y, 50, 50, posX * 50, posY * 50, 50, 50);
+		
+		
+		int[] neighborX = new int[] {posX - 1, posX + 1, posX, posX};
+		int[] neighborY = new int[] {posY, posY, posY - 1, posY + 1};
+		
+		for(int i = 0; i < 4; i++) {
+			if(neighborX[i] >= 0 && neighborY[i] >= 0 && 
+					neighborX[i] < currentMap.getWidth() && neighborY[i] < currentMap.getHeight() &&
+					currentMap.getTile(neighborX[i], neighborY[i]).spriteId == oldTile.spriteId) {
+				fill(ctx, neighborX[i], neighborY[i], si, oldTile, newTile, tileImage);
+			}
 		}
 	}
 	
@@ -602,14 +685,16 @@ public class GuiController implements Initializable {
 		redoButton.setDisable(redoStack.isEmpty());
 	}
 	
-	private void changeLayer(int layer) {
+	private void changeLayer(int mode) {
+		
+		layerMode = mode;
 		
 		for(Button b : layerButtons) {
 			b.getStyleClass().remove(1);
 			b.setDisable(false);
 		}
 		
-		switch(layer) {
+		switch(layerMode) {
 			case 1:
 				layer1Button.getStyleClass().add("controlButton");
 				layer2Button.getStyleClass().add("controlButtonSelected");
@@ -629,6 +714,22 @@ public class GuiController implements Initializable {
 				collisionButton.getStyleClass().add("controlButton");
 				layer1Button.setDisable(true);
 				break;
+		}
+	}
+	
+	private void changeDraw(int mode) {
+		
+		drawMode = mode;
+		
+		for(int i = 0; i < drawButtons.length; i++) {
+			drawButtons[i].getStyleClass().remove(1);
+			if(i == drawMode) {
+				drawButtons[i].setDisable(true);
+				drawButtons[i].getStyleClass().add("controlButtonSelected");
+			} else {
+				drawButtons[i].setDisable(false);
+				drawButtons[i].getStyleClass().add("controlButton");
+			}
 		}
 	}
 }
