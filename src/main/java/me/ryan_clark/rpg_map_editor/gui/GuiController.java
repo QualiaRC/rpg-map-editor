@@ -39,6 +39,7 @@ import javafx.stage.Stage;
 import javafx.util.converter.IntegerStringConverter;
 import me.ryan_clark.rpg_map_editor.Action;
 import me.ryan_clark.rpg_map_editor.Map;
+import me.ryan_clark.rpg_map_editor.MapIO;
 import me.ryan_clark.rpg_map_editor.SubImage;
 import me.ryan_clark.rpg_map_editor.Tile;
 
@@ -193,9 +194,9 @@ public class GuiController implements Initializable {
 					extension = f.getAbsolutePath().substring(i + 1);
 				}
 				if(extension.equals("ser")) {
-					currentMap.saveMapSerialized(f);
+					MapIO.saveMapSerialized(f, currentMap);
 				} else {
-					currentMap.saveMap(f);
+					MapIO.saveMap(f, currentMap);
 				}
 			}
 			
@@ -397,7 +398,7 @@ public class GuiController implements Initializable {
 	
 	private void openMapFromFile(File f) {
 		try {
-			currentMap = new Map(f);
+			currentMap = MapIO.openMap(f);
 			setupTiles();
 			openedFile.set(true);
 			zoomIn.setDisable(false);
@@ -485,7 +486,6 @@ public class GuiController implements Initializable {
 		});
 		mapCanvas.setOnMouseReleased(m -> {
 			if(currentAction.size() != 0) {
-				System.out.println("Adding to undo stack");
 				undoStack.push(currentAction);
 				currentAction = new ArrayList<Action>();
 				updateUndoRedo();
@@ -688,32 +688,16 @@ public class GuiController implements Initializable {
 	private void changeLayer(int mode) {
 		
 		layerMode = mode;
-		
-		for(Button b : layerButtons) {
-			b.getStyleClass().remove(1);
-			b.setDisable(false);
-		}
-		
-		switch(layerMode) {
-			case 1:
-				layer1Button.getStyleClass().add("controlButton");
-				layer2Button.getStyleClass().add("controlButtonSelected");
-				collisionButton.getStyleClass().add("controlButton");
-				layer2Button.setDisable(true);
-				break;
-			case 2:
-				layer1Button.getStyleClass().add("controlButton");
-				layer2Button.getStyleClass().add("controlButton");
-				collisionButton.getStyleClass().add("controlButtonSelected");
-				collisionButton.setDisable(true);
-				break;
-			case 0:
-			default:
-				layer1Button.getStyleClass().add("controlButtonSelected");
-				layer2Button.getStyleClass().add("controlButton");
-				collisionButton.getStyleClass().add("controlButton");
-				layer1Button.setDisable(true);
-				break;
+				
+		for(int i = 0; i < layerButtons.length; i++) {
+			layerButtons[i].getStyleClass().remove(1);
+			if(i == layerMode) {
+				layerButtons[i].setDisable(true);
+				layerButtons[i].getStyleClass().add("controlButtonSelected");
+			} else {
+				layerButtons[i].setDisable(false);
+				layerButtons[i].getStyleClass().add("controlButton");
+			}
 		}
 	}
 	
