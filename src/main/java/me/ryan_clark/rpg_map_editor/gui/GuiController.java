@@ -16,6 +16,8 @@ import javafx.fxml.Initializable;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
@@ -24,7 +26,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.TextFormatter;
 import javafx.scene.control.TextFormatter.Change;
 import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
+import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
@@ -61,7 +63,11 @@ public class GuiController implements Initializable {
 	private Stack<ArrayList<Action>> redoStack = new Stack<ArrayList<Action>>();
 	
 	private ArrayList<Action> currentAction = new ArrayList<Action>();
-	private boolean performingAction = false;
+	
+	// layer 1, layer 2, collision
+	private int layerMode = 0;
+	
+	private boolean ctrlPressed = false;
 		
 	@FXML
 	private Button buttonNew;
@@ -95,9 +101,25 @@ public class GuiController implements Initializable {
 	
 	@FXML
 	private Button redoButton;
+	
+	@FXML
+	private Button layer1Button;
+	
+	@FXML
+	private Button layer2Button;
+	
+	@FXML
+	private Button collisionButton;
+	
+	private Button[] layerButtons;
 
 	@Override
 	public void initialize(URL location, ResourceBundle resources) {
+		
+		layerButtons = new Button[] {layer1Button, layer2Button, collisionButton};
+		for(Button b : layerButtons) {
+			b.setDisable(true);
+		}
 		
 		mapPane.setHbarPolicy(ScrollBarPolicy.ALWAYS);
 		mapPane.setVbarPolicy(ScrollBarPolicy.ALWAYS);
@@ -174,8 +196,23 @@ public class GuiController implements Initializable {
 		redoButton.setOnAction(e -> {
 			redo();
 		});
-		
+				
 		updateUndoRedo();
+		
+		layer1Button.setOnAction(e -> {
+			layerMode = 0;
+			changeLayer(layerMode);
+		});
+		
+		layer2Button.setOnAction(e -> {
+			layerMode = 1;
+			changeLayer(layerMode);
+		});
+
+		collisionButton.setOnAction(e -> {
+			layerMode = 2;
+			changeLayer(layerMode);
+		});
 	}
 	
 	// Sets zoom level back to 100%
@@ -262,7 +299,6 @@ public class GuiController implements Initializable {
 		cancelButton.setPrefWidth(75);
 		cancelButton.setLayoutX(75);
 		buttonPane.getChildren().addAll(okButton, cancelButton);
-		
 
 		parentPane.getChildren().addAll(widthPane, heightPane, buttonPane);
 		parentPane.setLayoutX(10);
@@ -287,16 +323,48 @@ public class GuiController implements Initializable {
 			int width = Integer.parseInt(inputWidth.getText());
 			int height = Integer.parseInt(inputHeight.getText());
 			if(width > 100 || height > 100) {
-				System.out.println("Error, max dimensions are 100 x 100");
+				Alert alert = new Alert(AlertType.ERROR);
+				alert.setTitle("Size Error");
+				alert.setHeaderText(null);
+				alert.setContentText("Error, max dimensions are 100 x 100");
+				alert.showAndWait();
 			} else if(width < 10 || height < 10) {
-				System.out.println("Error, min dimensions are 10 x 10");
+				Alert alert = new Alert(AlertType.ERROR);
+				alert.setTitle("Size Error");
+				alert.setHeaderText(null);
+				alert.setContentText("Error, minimum dimensions are 10 x 10");
+				alert.showAndWait();
 			} else {
 				openMapFromInput(width, height);
 				popup.close();
 			}
 		});
+		
+		for(TextField t : new TextField[] {inputWidth, inputHeight}) {
+			t.setOnKeyPressed(e -> {
+				if(e.getCode().equals(KeyCode.ENTER)) {
+					int width = Integer.parseInt(inputWidth.getText());
+					int height = Integer.parseInt(inputHeight.getText());
+					if(width > 100 || height > 100) {
+						Alert alert = new Alert(AlertType.ERROR);
+						alert.setTitle("Size Error");
+						alert.setHeaderText(null);
+						alert.setContentText("Error, max dimensions are 100 x 100");
+						alert.showAndWait();
+					} else if(width < 10 || height < 10) {
+						Alert alert = new Alert(AlertType.ERROR);
+						alert.setTitle("Size Error");
+						alert.setHeaderText(null);
+						alert.setContentText("Error, minimum dimensions are 10 x 10");
+						alert.showAndWait();
+					} else {
+						openMapFromInput(width, height);
+						popup.close();
+					}
+				}
+			});
+		}
 	}
-	
 	
 	private void openMapFromFile(File f) {
 		try {
@@ -363,7 +431,6 @@ public class GuiController implements Initializable {
 		}
 		resetZoom();
 		
-		
 		// Mouse events to draw tiles (On click or drag)
 		mapCanvas.setOnMouseClicked(m -> { 
 			redoStack.removeAllElements();
@@ -373,21 +440,25 @@ public class GuiController implements Initializable {
 			drawTile(m, ctxMap); });
 		
 		mapCanvas.setOnMouseDragReleased(m -> {
-			undoStack.push(currentAction);
-			currentAction = new ArrayList<Action>();
-			updateUndoRedo();
+			if(currentAction.size() != 0) {
+				undoStack.push(currentAction);
+				currentAction = new ArrayList<Action>();
+				updateUndoRedo();
+			}
 		});
 		mapCanvas.setOnMouseReleased(m -> {
-			undoStack.push(currentAction);
-			currentAction = new ArrayList<Action>();
-			updateUndoRedo();
+			if(currentAction.size() != 0) {
+				undoStack.push(currentAction);
+				currentAction = new ArrayList<Action>();
+				updateUndoRedo();
+			}
 		});
 		
 		// Hovering over a square moves the mapHover rectangle to that location
 		mapCanvas.setOnMouseMoved(m -> {
 			double x = m.getX();
 			double y = m.getY();
-			if(x < 50 * currentMap.getWidth() && y < 50 * currentMap.getHeight()) {
+			if(x < 50 * currentMap.getWidth() && y < 50 * currentMap.getHeight() && x > 0 && y > 0) {
 				int posX = (int) (x / 50) * 50;
 				int posY = (int) (y / 50) * 50;
 				mapHover.setLayoutX(posX * scales[scaleIndex] + 5);
@@ -400,8 +471,6 @@ public class GuiController implements Initializable {
 		// Clear tiles pane, add canvas and hover
 		tiles.getChildren().removeAll(tiles.getChildren());
 		tiles.getChildren().addAll(mapCanvas, mapHover);
-		
-
 		
 		// SECOND, work on the tileset canvas
 		tilesetCanvas = new Canvas(500, 500);
@@ -442,6 +511,28 @@ public class GuiController implements Initializable {
 		sheet.getChildren().removeAll(sheet.getChildren());
 		sheet.getChildren().addAll(tilesetCanvas, tilesetHover);
 		
+		layerMode = 0;
+		changeLayer(layerMode);
+		
+		buttonNew.getScene().setOnKeyPressed(e -> {
+			if(e.getCode().equals(KeyCode.CONTROL)) {
+				ctrlPressed = true;
+			} else if(e.getCode().equals(KeyCode.Z) && ctrlPressed) {
+				if(!undoStack.isEmpty()) {
+					undo();
+				}
+			} else if(e.getCode().equals(KeyCode.Y) && ctrlPressed) {
+				if(!redoStack.isEmpty()) {
+					redo();
+				}
+			}
+		});
+		
+		buttonNew.getScene().setOnKeyReleased(e -> {
+			if(e.getCode().equals(KeyCode.CONTROL)) {
+				ctrlPressed = false;
+			}
+		});
 	}
 	
 	
@@ -467,25 +558,22 @@ public class GuiController implements Initializable {
 				
 				// TODO: use the current map's tile sheet
 				ctx.drawImage(new Image("/tiles/tileset_01.png"), si.x, si.y, 50, 50, posX * 50, posY * 50, 50, 50);
-				
-				
-				System.out.println("Added new action: Tile " + newAction.oldTile.spriteId + " -> " + newAction.newTile.spriteId);
 			}
 			
 			mapHover.setLayoutX(posX * 50 * scales[scaleIndex] + 5);
 			mapHover.setLayoutY(posY * 50 * scales[scaleIndex] + 5);
-			
 		}
 	}
 	
 	private void undo() {
 		ArrayList<Action> actions = undoStack.pop();
 		
+		Image i = new Image("/tiles/tileset_01.png");
+		
 		for(Action action : actions) {
-			Tile t = action.oldTile;
-			currentMap.setTile(action.posX, action.posY, t);	
-			SubImage si = SubImage.getSprite(t.spriteId);
-			mapCanvas.getGraphicsContext2D().drawImage(new Image("/tiles/tileset_01.png"), si.x, si.y, 50, 50, action.posX * 50, action.posY * 50, 50, 50);
+			currentMap.setTile(action.posX, action.posY, action.oldTile);	
+			SubImage si = SubImage.getSprite(action.oldTile.spriteId);
+			mapCanvas.getGraphicsContext2D().drawImage(i, si.x, si.y, 50, 50, action.posX * 50, action.posY * 50, 50, 50);
 		}
 		
 		redoStack.push(actions);
@@ -496,11 +584,12 @@ public class GuiController implements Initializable {
 	private void redo() {
 		ArrayList<Action> actions = redoStack.pop();
 		
+		Image i = new Image("/tiles/tileset_01.png");
+		
 		for(Action action : actions) {
-			Tile t = action.newTile;
-			currentMap.setTile(action.posX, action.posY, t);	
-			SubImage si = SubImage.getSprite(t.spriteId);
-			mapCanvas.getGraphicsContext2D().drawImage(new Image("/tiles/tileset_01.png"), si.x, si.y, 50, 50, action.posX * 50, action.posY * 50, 50, 50);			
+			currentMap.setTile(action.posX, action.posY, action.newTile);	
+			SubImage si = SubImage.getSprite(action.newTile.spriteId);
+			mapCanvas.getGraphicsContext2D().drawImage(i, si.x, si.y, 50, 50, action.posX * 50, action.posY * 50, 50, 50);			
 		}
 		
 		undoStack.push(actions);
@@ -509,16 +598,37 @@ public class GuiController implements Initializable {
 	}
 	
 	private void updateUndoRedo() {
-		if(undoStack.isEmpty()) {
-			undoButton.setDisable(true);
-		} else {
-			undoButton.setDisable(false);
+		undoButton.setDisable(undoStack.isEmpty());
+		redoButton.setDisable(redoStack.isEmpty());
+	}
+	
+	private void changeLayer(int layer) {
+		
+		for(Button b : layerButtons) {
+			b.getStyleClass().remove(1);
+			b.setDisable(false);
 		}
 		
-		if(redoStack.isEmpty()) {
-			redoButton.setDisable(true);
-		} else {
-			redoButton.setDisable(false);
+		switch(layer) {
+			case 1:
+				layer1Button.getStyleClass().add("controlButton");
+				layer2Button.getStyleClass().add("controlButtonSelected");
+				collisionButton.getStyleClass().add("controlButton");
+				layer2Button.setDisable(true);
+				break;
+			case 2:
+				layer1Button.getStyleClass().add("controlButton");
+				layer2Button.getStyleClass().add("controlButton");
+				collisionButton.getStyleClass().add("controlButtonSelected");
+				collisionButton.setDisable(true);
+				break;
+			case 0:
+			default:
+				layer1Button.getStyleClass().add("controlButtonSelected");
+				layer2Button.getStyleClass().add("controlButton");
+				collisionButton.getStyleClass().add("controlButton");
+				layer1Button.setDisable(true);
+				break;
 		}
 	}
 }

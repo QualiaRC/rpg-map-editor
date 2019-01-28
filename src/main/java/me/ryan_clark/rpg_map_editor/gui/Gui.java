@@ -6,6 +6,7 @@ import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.image.Image;
 import javafx.stage.Stage;
 
 public class Gui extends Application {
@@ -21,6 +22,7 @@ public class Gui extends Application {
 		
 		stage.setScene(scene);
 		stage.setTitle("MAP EDITOR | v0.1");
+		stage.getIcons().add(new Image(getClass().getResourceAsStream("/icon.png")));
 		stage.setMinWidth(800);
 		stage.setMinHeight(600);
 		stage.show();

@@ -28,12 +28,12 @@
     			<graphic><ImageView><image><Image url="/style/icons/new.png" /></image></ImageView></graphic>
     		</Button>
     		
-    		<Button fx:id="buttonOpen" styleClass="controlButton">
+    		<Button fx:id="buttonOpen" styleClass="controlButton" prefHeight="$CONTROLS_HEIGHT">
     			<tooltip><Tooltip text="Open file" /></tooltip>
     			<graphic><ImageView><image><Image url="/style/icons/sign-out.png" /></image></ImageView></graphic>
     		</Button>
     		
-    		<Button fx:id="buttonSave" styleClass="controlButton">
+    		<Button fx:id="buttonSave" styleClass="controlButton" prefHeight="$CONTROLS_HEIGHT">
     			<tooltip><Tooltip text="Save file" /></tooltip>
     			<graphic><ImageView><image><Image url="/style/icons/save.png" /></image></ImageView></graphic>
     		</Button>
@@ -44,12 +44,12 @@
     	<HBox fx:id="zoomControls" alignment="CENTER_LEFT" >
     		<Label fx:id="zoomLabel" styleClass="controlLabel" prefWidth="100" prefHeight="$CONTROLS_HEIGHT" text="Zoom: 100%" />
     		
-    		<Button fx:id="zoomOut" styleClass="controlButton">
+    		<Button fx:id="zoomOut" styleClass="controlButton" prefHeight="$CONTROLS_HEIGHT">
     			<tooltip><Tooltip text="Zoom out" /></tooltip>
     			<graphic><ImageView><image><Image url="/style/icons/zoom-out.png" /></image></ImageView></graphic>
     		</Button>
     		
-    		<Button fx:id="zoomIn" styleClass="controlButton">
+    		<Button fx:id="zoomIn" styleClass="controlButton" prefHeight="$CONTROLS_HEIGHT">
     			<tooltip><Tooltip text="Zoom in" /></tooltip>
     			<graphic><ImageView><image><Image url="/style/icons/zoom-in.png" /></image></ImageView></graphic>
     		</Button>
@@ -63,7 +63,7 @@
     			<graphic><ImageView><image><Image url="/style/icons/undo.png" /></image></ImageView></graphic>
     		</Button>
     
-    		<Button fx:id="redoButton" styleClass="controlButton">
+    		<Button fx:id="redoButton" styleClass="controlButton" prefHeight="$CONTROLS_HEIGHT">
     			<tooltip><Tooltip text="Redo" /></tooltip>
     			<graphic><ImageView><image><Image url="/style/icons/redo.png" /></image></ImageView></graphic>
     		</Button>
@@ -77,12 +77,12 @@
     			<graphic><ImageView><image><Image url="/style/icons/layer1.png" /></image></ImageView></graphic>
     		</Button>
     		
-    		<Button fx:id="layer2Button" styleClass="controlButton" >
+    		<Button fx:id="layer2Button" styleClass="controlButton" prefHeight="$CONTROLS_HEIGHT">
     			<tooltip><Tooltip text="Layer 2" /></tooltip>
     			<graphic><ImageView><image><Image url="/style/icons/layer2.png" /></image></ImageView></graphic>
     		</Button>
     		
-    		<Button fx:id="collisionButton" styleClass="controlButton" >
+    		<Button fx:id="collisionButton" styleClass="controlButton" prefHeight="$CONTROLS_HEIGHT">
     			<tooltip><Tooltip text="Collision" /></tooltip>
     			<graphic><ImageView><image><Image url="/style/icons/collision.png" /></image></ImageView></graphic>
     		</Button>

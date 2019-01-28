@@ -26,3 +26,7 @@
     -fx-background-insets: 0, 1;
     -fx-padding: 1;
 }
+
+.controlButtonSelected {
+	-fx-background-color: white;
+}
